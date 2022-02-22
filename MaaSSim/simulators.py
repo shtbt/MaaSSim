@@ -8,11 +8,12 @@
 from MaaSSim.maassim import Simulator
 from MaaSSim.shared import prep_shared_rides
 from MaaSSim.utils import get_config, load_G, generate_demand, generate_vehicles, initialize_df, empty_series, \
-    slice_space, read_requests_csv, read_vehicle_positions
+    slice_space, read_requests_csv, read_vehicle_positions, generate_platforms
 import pandas as pd
 from scipy.optimize import brute
 import logging
 import re
+from MaaSSim.day_to_day import exp_income #f#
 
 
 
@@ -108,11 +109,13 @@ def simulate(config="data/config.json", inData=None, params=None, **kwargs):
     if len(inData.passengers) == 0:  # only if no passengers in input
         inData = generate_demand(inData, params, avg_speed=True)
     if len(inData.vehicles) == 0:  # only if no vehicles in input
-        inData.vehicles = generate_vehicles(inData, params.nV)
+        inData.vehicles = generate_vehicles(inData, params, params.nV)
     if len(inData.platforms) == 0:  # only if no platforms in input
-        inData.platforms = initialize_df(inData.platforms)
-        inData.platforms.loc[0] = empty_series(inData.platforms)
-        inData.platforms.fare = [1]
+        # inData.platforms = initialize_df(inData.platforms)
+        # inData.platforms.loc[0] = empty_series(inData.platforms)
+        # inData.platforms.fare = [1]
+        inData.platforms = generate_platforms(inData, params, params.get('nPM', 1))
+
 
     inData = prep_shared_rides(inData, params.shareability)  # prepare schedules
 
@@ -122,6 +125,7 @@ def simulate(config="data/config.json", inData=None, params=None, **kwargs):
     for day in range(params.get('nD', 1)):  # run iterations
         sim.make_and_run(run_id=day)  # prepare and SIM
         sim.output()  # calc results
+        exp_income(sim) #f#
         if sim.functions.f_stop_crit(sim=sim):
             break
     return sim

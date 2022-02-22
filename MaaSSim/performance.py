@@ -93,8 +93,8 @@ def kpi_veh(*args, **kwargs):
     ret['OPERATIONS'] = ret['ACCEPTS_REQUEST'] + ret['DEPARTS_FROM_PICKUP'] + ret['IS_ACCEPTED_BY_TRAVELLER']
     ret['IDLE'] = ret['ENDS_SHIFT'] - ret['OPENS_APP'] - ret['OPERATIONS'] - ret['CRUISE'] - ret['WAIT'] - ret['TRAVEL']
 
-    ret['PAX_KM'] = ret.apply(lambda x: sim.inData.requests.loc[sim.runs[0].trips[
-        sim.runs[0].trips.veh_id == x.name].pax.unique()].dist.sum() / 1000, axis=1)
+    ret['PAX_KM'] = ret.apply(lambda x: sim.inData.requests.loc[sim.runs[run_id].trips[
+        sim.runs[run_id].trips.veh_id == x.name].pax.unique()].dist.sum() / 1000, axis=1)
     ret['REVENUE'] = ret.apply(lambda x: sim.inData.platforms.loc[sim.inData.vehicles.loc[
         x.name].platform].fare, axis=1)
     ret['REVENUE'] = ret['REVENUE'] * ret['PAX_KM']

@@ -20,7 +20,8 @@ from MaaSSim.traveller import PassengerAgent, travellerEvent
 from MaaSSim.driver import VehicleAgent
 from MaaSSim.decisions import f_dummy_repos, f_match, dummy_False
 from MaaSSim.platform import PlatformAgent
-from MaaSSim.performance import kpi_pax, kpi_veh
+from MaaSSim.performance import kpi_pax#, kpi_veh
+from MaaSSim.day_to_day import d2d_kpi_veh
 from MaaSSim.utils import initialize_df
 import sys
 import logging
@@ -41,7 +42,7 @@ DEFAULTS = dict(f_match=f_match,
                 f_timeout=None,
 
                 kpi_pax=kpi_pax,
-                kpi_veh=kpi_veh,
+                kpi_veh=d2d_kpi_veh,
 
                 monitor=True)
 
@@ -73,6 +74,9 @@ class Simulator:
         # input
         self.inData = _inData.copy()  # copy of data structure for simulations (copy needed for multi-threading)
         self.vehicles = self.inData.vehicles  # input
+        # if we want to restart vehicles everyday from fixed locations
+        self.vehicle_fixed_positions = pd.Series(self.inData.vehicles.pos.values.copy(),
+                                                 index=self.inData.vehicles.index.copy()) #f#
         self.platforms = self.inData.platforms  # input
         self.defaults = DEFAULTS.copy()  # default configuration of decision functions
 
@@ -86,6 +90,12 @@ class Simulator:
                             .format(self.params.simTime,
                                     self.t0, self.params.nV, self.params.nP,
                                     self.params.city))
+        self.income = DotMap() #f#
+        self.income.expected = pd.DataFrame({'veh_id': list(range(1,self.params.nV+1))}).set_index('veh_id') #f#
+        self.inData.vehicles.expected_income = self.params.d2d.ini_exp_income #f#
+        self.income.expected['run {}'.format(0)] = self.inData.vehicles.expected_income.copy() #f#
+        #slef.inData.vehicles.expected_income = np.random.normal(self.params.d2d.ini_exp_income, 1, self.params.nV) #f#
+        self.income.actual = pd.DataFrame({'veh_id': list(range(1,self.params.nV+1))}).set_index('veh_id') #f#
 
     ##########
     #  PREP  #
