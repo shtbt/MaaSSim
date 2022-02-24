@@ -9,7 +9,7 @@ import random
 def driver_opt_out(veh, **kwargs): # user defined function to represent agent decisions
     sim = veh.sim
     working_U = veh.veh.expected_income
-    #sim.logger.info("")
+    #sim.logger.info("Heyyoooooooooooooooooooooooooooooooooooooooo")
     #print("working_U..................", working_U)
     not_working_U = veh.veh.res_wage
     #print("not_working_U..............", not_working_U)
@@ -23,18 +23,20 @@ def driver_opt_out(veh, **kwargs): # user defined function to represent agent de
 
 def exp_income(sim):
     params = sim.params 
-    sim.inData.vehicles.mu = sim.inData.vehicles.apply(lambda row: 1 if row['expected_income'] > row['res_wage'] 
-                                                       else 0, axis=1) #update mu for further calculations
     run_id = sim.run_ids[-1]
+    # sim.inData.vehicles.mu = sim.inData.vehicles.apply(lambda row: 1 if row['expected_income'] > row['res_wage'] 
+    #                                                    else 0, axis=1) #update mu for further calculations
+
     act_income = sim.res[run_id].veh_exp.PROFIT
-    if sim.inData.vehicles.mu.sum() == 0:
+    mu = sim.res[run_id].veh_exp.mu
+    if mu.sum() == 0:
         ave_income = 0
     else:
-        ave_income = act_income.sum()/sim.inData.vehicles.mu.sum()
+        ave_income = act_income.sum()/mu.sum()
     # update the expected_income
     sim.inData.vehicles.expected_income = (1-params.d2d.omega)*sim.inData.vehicles.expected_income +\
-                                              params.d2d.omega*sim.inData.vehicles.mu*act_income + \
-                                              params.d2d.omega*(1-sim.inData.vehicles.mu)*ave_income
+                                              params.d2d.omega*mu*act_income + \
+                                              params.d2d.omega*(1-mu)*ave_income
     sim.income.expected['run {}'.format(run_id+1)] = sim.inData.vehicles.expected_income.copy()
     sim.income.actual['run {}'.format(run_id)] = act_income.copy()
 
@@ -75,7 +77,9 @@ def d2d_kpi_veh(*args,**kwargs):
     ret['REVENUE'] = (ret.ARRIVES_AT_DROPOFF * (params.speeds.ride/1000) * params.platforms.fare).add(params.platforms.base_fare * ret.nRIDES) * (1-params.platforms.comm_rate)
     ret['COST'] = ret['DRIVING_DIST'] * (params.d2d.fuel_cost) # Operating Cost (OC)
     ret['PROFIT'] = ret['REVENUE'] - ret['COST']
-    ret = ret[['nRIDES','nREJECTED', 'DRIVING_TIME', 'DRIVING_DIST', 'REVENUE', 'COST', 'PROFIT', 'OUT'] + [_.name for _ in driverEvent]].fillna(0) 
+    ret['mu'] = ret.apply(lambda row: 1 if row['OUT'] == False else 0, axis=1)
+    
+    ret = ret[['nRIDES','nREJECTED', 'DRIVING_TIME', 'DRIVING_DIST', 'REVENUE', 'COST', 'PROFIT', 'OUT','mu'] + [_.name for _ in driverEvent]].fillna(0) 
     ret.index.name = 'veh'
     
     # KPIs

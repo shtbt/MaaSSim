@@ -20,7 +20,7 @@ from MaaSSim.traveller import PassengerAgent, travellerEvent
 from MaaSSim.driver import VehicleAgent
 from MaaSSim.decisions import f_dummy_repos, f_match, dummy_False
 from MaaSSim.platform import PlatformAgent
-from MaaSSim.performance import kpi_pax#, kpi_veh
+from MaaSSim.performance import kpi_pax, kpi_veh
 from MaaSSim.day_to_day import d2d_kpi_veh
 from MaaSSim.utils import initialize_df
 import sys
@@ -42,7 +42,7 @@ DEFAULTS = dict(f_match=f_match,
                 f_timeout=None,
 
                 kpi_pax=kpi_pax,
-                kpi_veh=d2d_kpi_veh,
+                kpi_veh= kpi_veh, #d2d_kpi_veh,
 
                 monitor=True)
 
