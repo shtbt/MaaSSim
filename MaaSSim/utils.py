@@ -161,9 +161,12 @@ def generate_vehicles(_inData, _params, nV):
     vehs.shift_start = 0
     vehs.shift_end = 60 * 60 * 24
     vehs.pos = vehs.pos.apply(lambda x: int(rand_node(_inData.nodes)))
-    vehs['mu'] = 0 #f#
-    vehs['res_wage'] = np.random.normal(_params.d2d.res_wage, _params.d2d.res_wage_eps, nV) #f#
-
+    
+    vehs['learning'] = 'on' #f#
+    if _params.d2d.heterogeneous: #f#
+        vehs['res_wage_eps'] = np.random.gumbel(0, _params.d2d.res_wage_sp, nV) #f#
+        vehs['exp_income_eps'] = np.random.gumbel(0, _params.d2d.exp_income_sp, nV) #f#
+        
     return vehs
 
 
@@ -181,6 +184,8 @@ def generate_demand(_inData, _params=None, avg_speed=False):
     df = pd.DataFrame(index=np.arange(0, _params.nP), columns=_inData.passengers.columns)
     df.status = travellerEvent.STARTS_DAY
     df.pos = _inData.nodes.sample(_params.nP).index  # df.pos = df.apply(lambda x: rand_node(_inData.nodes), axis=1)
+    df['exp_utility_eps'] = np.random.gumbel(0, _params.d2d.exp_utility_eps, _params.nP)  #f#
+    df['learning'] = 'on' #f#
     _inData.passengers = df
     requests = pd.DataFrame(index=df.index, columns=_inData.requests.columns)
     distances = _inData.skim[_inData.stats['center']].to_frame().dropna()  # compute distances from center

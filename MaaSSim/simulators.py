@@ -13,8 +13,6 @@ import pandas as pd
 from scipy.optimize import brute
 import logging
 import re
-from MaaSSim.day_to_day import exp_income #f#
-
 
 
 def single_pararun(one_slice, *args):
@@ -121,11 +119,14 @@ def simulate(config="data/config.json", inData=None, params=None, **kwargs):
 
 
     sim = Simulator(inData, params=params, **kwargs)  # initialize
-
+    
+    if params.d2d.heterogeneous:
+        print('res_wage_eps mean = ',sim.inData.vehicles.res_wage_eps.mean())
+        print('exp_income_eps mean = ',sim.inData.vehicles.exp_income_eps.mean())
+    
     for day in range(params.get('nD', 1)):  # run iterations
         sim.make_and_run(run_id=day)  # prepare and SIM
         sim.output()  # calc results
-        #exp_income(sim) #f#
         if sim.functions.f_stop_crit(sim=sim):
             break
     return sim
